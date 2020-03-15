@@ -141,6 +141,10 @@ public class Game extends Auditable {
 		this.players.add(leader);
 	}
 
+	public Game() {
+		// TODO Auto-generated constructor stub
+	}
+
 	public void addPlayer(Player player) throws InvalidActionException {
 		if (!gameStatus.equals(GameStatus.PLAYERS_JOINING)) {
 			throw new InvalidActionException("Game is already started");

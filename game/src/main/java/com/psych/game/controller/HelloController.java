@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.psych.game.model.Game;
+import com.psych.game.model.GameMode;
 import com.psych.game.model.Player;
 import com.psych.game.model.Question;
 import com.psych.game.model.Round;
@@ -92,6 +93,47 @@ public class HelloController {
 	public List<Round> getAllRounds(){
 		return roundRepository.findAll();
 	}
+	
+	@GetMapping("/populate")
+    public String populateDB() {
+        for(Player player: playerRepository.findAll()) {
+            player.getGames().clear();
+            playerRepository.save(player);
+        }
+        gameRepository.deleteAll();
+        playerRepository.deleteAll();
+        questionRepository.deleteAll();
+
+        Player luffy = new Player.Builder()
+                .alias("Monkey D. Luffy")
+                .email("luffy@interviewbit.com")
+                .saltedHashedPassword("strawhat")
+                .build();
+        playerRepository.save(luffy);
+        Player robin = new Player.Builder()
+                .alias("Nico Robin")
+                .email("robin@interviewbit.com")
+                .saltedHashedPassword("poneglyph")
+                .build();
+        playerRepository.save(robin);
+        Game game = new Game();
+        game.setGameMode(GameMode.IS_THIS_A_FACT);
+        game.setLeader(luffy);
+        game.getPlayers().add(luffy);
+        gameRepository.save(game);
+        questionRepository.save(new Question(
+                "What is the most important Poneglyph",
+                "Rio Poneglyph",
+                GameMode.IS_THIS_A_FACT
+        ));
+        questionRepository.save(new Question(
+                "How far can Luffy stretch?",
+                "56 Gomu Gomus",
+                GameMode.IS_THIS_A_FACT
+        ));
+        return "populated";
+    }
+
 	
 	
 	

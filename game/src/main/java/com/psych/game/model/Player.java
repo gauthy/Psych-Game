@@ -118,7 +118,29 @@ public class Player extends User  {
 	public Game getCurrentGame() {
 		// TODO Auto-generated method stub
 		return null;
-	}	
+	}
+
+	public String getAlias() {
+		return alias;
+	}
+
+	public String getPsychFaceURL() {
+		return psychFaceURL;
+	}
+
+	public String getPicFaceURL() {
+		return picFaceURL;
+	}
+
+	public Stat getStats() {
+		return stats;
+	}
+
+	public Set<Game> getGames() {
+		return games;
+	}
+	
+	
 	
 	
 	
