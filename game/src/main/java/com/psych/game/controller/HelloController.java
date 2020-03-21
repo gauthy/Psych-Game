@@ -18,6 +18,7 @@ import com.psych.game.model.Round;
 import com.psych.game.model.User;
 import com.psych.game.repository.AdminRepository;
 import com.psych.game.repository.ContentWritersRepository;
+import com.psych.game.repository.GameModeRepository;
 import com.psych.game.repository.GameRepository;
 import com.psych.game.repository.PlayerRepository;
 import com.psych.game.repository.QuestionRepository;
@@ -45,6 +46,9 @@ public class HelloController {
 
 	@Autowired
 	AdminRepository adminRepository;
+
+	@Autowired
+	GameModeRepository gameModeRepository;
 
 	@Autowired
 	ContentWritersRepository contentWritersRepository;
@@ -128,26 +132,42 @@ public class HelloController {
 	public String populateDB() {
 		for (Player player : playerRepository.findAll()) {
 			player.getGames().clear();
+			player.setCurrentGame(null);
 			playerRepository.save(player);
 		}
 		gameRepository.deleteAll();
 		playerRepository.deleteAll();
 		questionRepository.deleteAll();
+		gameModeRepository.deleteAll();
 
-		Player luffy = new Player.Builder().alias("Monkey D. Luffy").email("luffy@interviewbit.com")
+		Player luffy = new Player.Builder().alias("Monkey D. Luffy").email("luffy@psych.com")
 				.saltedHashedPassword("strawhat").build();
 		playerRepository.save(luffy);
-		Player robin = new Player.Builder().alias("Nico Robin").email("robin@interviewbit.com")
+		Player robin = new Player.Builder().alias("Nico Robin").email("robin@psych.com")
 				.saltedHashedPassword("poneglyph").build();
 		playerRepository.save(robin);
+
+		GameMode isThisAFact = new GameMode("Is This A Fact?",
+				"https://i.pinimg.com/originals/29/cb/75/29cb75e488831ba018fe5f0925b8e39f.png",
+				"is this a fact description");
+		gameModeRepository.save(isThisAFact);
+		gameModeRepository.save(new GameMode("Word Up",
+				"https://i.pinimg.com/originals/29/cb/75/29cb75e488831ba018fe5f0925b8e39f.png", "word up description"));
+		gameModeRepository.save(new GameMode("Un-Scramble",
+				"https://i.pinimg.com/originals/29/cb/75/29cb75e488831ba018fe5f0925b8e39f.png",
+				"unscramble descirption"));
+		gameModeRepository.save(new GameMode("Movie Buff",
+				"https://i.pinimg.com/originals/29/cb/75/29cb75e488831ba018fe5f0925b8e39f.png",
+				"movie buff description"));
+
 		Game game = new Game();
-		game.setGameMode(GameMode.IS_THIS_A_FACT);
+		game.setGameMode(isThisAFact);
 		game.setLeader(luffy);
 		game.getPlayers().add(luffy);
 		gameRepository.save(game);
-		questionRepository
-				.save(new Question("What is the most important Poneglyph", "Rio Poneglyph", GameMode.IS_THIS_A_FACT));
-		questionRepository.save(new Question("How far can Luffy stretch?", "56 Gomu Gomus", GameMode.IS_THIS_A_FACT));
+
+		questionRepository.save(new Question("What is the most important Poneglyph", "Rio Poneglyph", isThisAFact));
+		questionRepository.save(new Question("How far can Luffy stretch?", "56 Gomu Gomus", isThisAFact));
 		return "populated";
 	}
 

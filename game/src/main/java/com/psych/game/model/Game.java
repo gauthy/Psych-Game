@@ -14,6 +14,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
@@ -24,6 +25,8 @@ import com.psych.game.exceptions.InvalidActionException;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 
 @Entity
 @Table(name = "games")
@@ -32,12 +35,14 @@ public class Game extends Auditable {
 	@JsonIdentityReference
 	private Set<Player> players = new HashSet<>();
 
-	@Enumerated(EnumType.STRING)
+	@JsonIdentityReference
+	@ManyToOne
 	@NotNull
 	private GameMode gameMode;
 
 	@OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
 	@JsonManagedReference
+	@OrderBy(value = "round_number asc")
 	private List<Round> rounds = new ArrayList<>();
 
 	private int numRounds = 10;
@@ -54,7 +59,7 @@ public class Game extends Auditable {
 	private Map<Player, Stat> playerStats = new HashMap<>();
 
 	@Enumerated(EnumType.STRING)
-	private GameStatus gameStatus;
+	private GameStatus gameStatus=GameStatus.PLAYERS_JOINING;
 
 	@ManyToMany
 	@JsonIdentityReference
@@ -138,7 +143,10 @@ public class Game extends Auditable {
 		this.numRounds = numRounds;
 		this.hasEllen = hasEllen;
 		this.leader = leader;
-		this.players.add(leader);
+		try {
+			addPlayer(leader);
+		} catch (InvalidActionException e) {
+		}
 	}
 
 	public Game() {
@@ -146,10 +154,12 @@ public class Game extends Auditable {
 	}
 
 	public void addPlayer(Player player) throws InvalidActionException {
+		System.out.println(player.toString());
 		if (!gameStatus.equals(GameStatus.PLAYERS_JOINING)) {
 			throw new InvalidActionException("Game is already started");
 		}
 		players.add(player);
+		player.setCurrentGame(this);
 	}
 
 	public void removePlayer(Player player) throws InvalidActionException {
@@ -157,6 +167,10 @@ public class Game extends Auditable {
 			throw new InvalidActionException("Player is not part of the game");
 		}
 		players.remove(player);
+		if (player.getCurrentGame().equals(this)) {
+			player.setCurrentGame(null);
+		}
+
 		if (players.size() == 0 || (players.size() == 1 && !gameStatus.equals(GameStatus.PLAYERS_JOINING))) {
 			endGame();
 		}
@@ -184,6 +198,11 @@ public class Game extends Auditable {
 
 	private void endGame() {
 		gameStatus = GameStatus.ENDED;
+		for (Player player : players) {
+			if (player.getCurrentGame().equals(this)) {
+				player.setCurrentGame(null);
+			}
+		}
 	}
 
 	public void submitAnswer(Player player, String answer) throws InvalidActionException {
@@ -261,6 +280,21 @@ public class Game extends Auditable {
 
 		return rounds.get(rounds.size() - 1);
 
+	}
+
+	public JSONObject getGameState() {
+		JSONObject state = new JSONObject();
+		state.put("id", getId());
+		state.put("numRounds", numRounds);
+		state.put("mode", gameMode.getName());
+		JSONArray playerData = new JSONArray();
+		for (Player player : players) {
+			JSONObject data = new JSONObject();
+			data.put("alias", player.getAlias());
+			playerData.add(data);
+		}
+		state.put("players", playerData);
+		return state;
 	}
 
 }

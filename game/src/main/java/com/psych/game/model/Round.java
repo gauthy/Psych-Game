@@ -23,40 +23,28 @@ import lombok.Setter;
 public class Round extends Auditable {
 
 	@ManyToOne
-	@Getter
-	@Setter
 	@JsonBackReference
 	@NotNull
 	private Game game;
 
 	@ManyToOne
 	@NotNull
-	@Getter
-	@Setter
 	@JsonIdentityReference
 	private Question question;
 
 	@ManyToMany(cascade = CascadeType.ALL)
-	@Getter
-	@Setter
 	@JsonManagedReference
 	private Map<Player, PlayerAnswer> submittedAnswers = new HashMap<>();
 
 	@ManyToMany(cascade = CascadeType.ALL)
-	@Getter
-	@Setter
 	@JsonManagedReference
 	private Map<Player, PlayerAnswer> selectedAnswers = new HashMap<>();
 
 	@ManyToOne
-	@Getter
-	@Setter
 	@JsonIdentityReference
 	private EllenAnswer ellenAnswer;
 
 	@NotNull
-	@Getter
-	@Setter
 	private int roundNumber;
 	
 	
